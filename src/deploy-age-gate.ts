@@ -80,7 +80,10 @@ async function main() {
   console.log(`\n  Wallet: ${address}`);
   console.log(`  Balance: ${balance.toLocaleString()} tNight\n`);
 
-  if (balance === 0n) {
+  // Set FUNDED=1 to skip faucet wait when you've already funded externally
+  const skipFaucet = process.env.FUNDED === '1';
+
+  if (balance === 0n && !skipFaucet) {
     console.log('─── Fund Wallet ────────────────────────────────────────────────\n');
     console.log(`  Wallet address: ${address}`);
     console.log(`  Faucet: https://midnight-tmnight-${network}.nethermind.dev`);
@@ -88,10 +91,13 @@ async function main() {
     const start = Date.now();
     while (true) {
       await new Promise((r) => setTimeout(r, 10_000));
-      const s = await Rx.firstValueFrom(walletCtx.wallet.state().pipe(Rx.filter((x) => x.isSynced)));
-      const tn = s.unshielded.balances[unshieldedToken().raw] ?? 0n;
-      if (tn > 0n) { console.log(`\n  Funded! ${tn.toLocaleString()} tNIGHT\n`); break; }
-      if (Date.now() - start > 600_000) { console.log('Funding timeout.'); process.exit(1); }
+      // Force resync to pick up new blocks (faucet tx)
+      try {
+        const fresh = await walletCtx.wallet.waitForSyncedState();
+        const tn = fresh.unshielded.balances[unshieldedToken().raw] ?? 0n;
+        if (tn > 0n) { console.log(`\n  Funded! ${tn.toLocaleString()} tNIGHT\n`); balance = tn; break; }
+      } catch { /* ignore sync errors, keep polling */ }
+      if (Date.now() - start > 1800_000) { console.log('Funding timeout.'); process.exit(1); }
       process.stdout.write(`\r  ...waiting (${Math.round((Date.now()-start)/1000)}s)`);
     }
   }
@@ -123,7 +129,7 @@ async function main() {
     privateStateProvider: levelPrivateStateProvider({
       privateStateStoreName: 'age-gate-state',
       accountId,
-      privateStoragePasswordProvider: () => 'age-gate-dev-placeholder',
+      privateStoragePasswordProvider: () => 'AgeGate-Dev-2026!',
     }),
     publicDataProvider: indexerPublicDataProvider(networkConfig.indexer, networkConfig.indexerWS),
     zkConfigProvider,

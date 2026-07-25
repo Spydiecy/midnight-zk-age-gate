@@ -10,7 +10,7 @@
 
 | Network  | Address                                                            |
 |----------|--------------------------------------------------------------------|
-| Preprod  | [PASTE ADDRESS AFTER DEPLOY]                                       |
+| Preprod  | `8c23f1893c64a9a323981c9c213534f8e4539f339ab69c3c0c7ac8b46ee1f037`    |
 | Preview  | `4999fb143b4a66fbde948f625f2700470cd006169a3bf93e6dc4a693df09035b` |
 
 ## What This Does
