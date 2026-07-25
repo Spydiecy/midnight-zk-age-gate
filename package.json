@@ -1,17 +1,26 @@
 {
-  "name": "midnight-privacy-counter",
-  "version": "1.0.0",
-  "description": "Privacy-preserving counter contract on Midnight Network",
+  "name": "midnight-zk-age-gate",
+  "version": "2.0.0",
+  "description": "ZK Age Gate — prove you're 18+ without revealing your age. Built on Midnight Network.",
   "type": "module",
   "scripts": {
-    "compile": "compact compile contracts/counter.compact managed/counter",
-    "deploy": "npx tsx src/deploy.ts",
+    "dev": "vite",
+    "build": "vite build --mode preprod && cp -r managed/age-gate/keys dist/keys && cp -r managed/age-gate/zkir dist/zkir",
+    "build:preview": "vite build --mode preview && cp -r managed/age-gate/keys dist/keys && cp -r managed/age-gate/zkir dist/zkir",
+    "preview": "vite preview",
+    "compile": "compact compile contracts/age-gate.compact managed/age-gate",
+    "compile:counter": "compact compile contracts/counter.compact managed/counter",
+    "deploy:preprod": "npx tsx src/deploy-age-gate.ts --network preprod",
+    "deploy:preview": "npx tsx src/deploy-age-gate.ts --network preview",
     "test": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern=tests/",
     "test:run": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern=tests/ --forceExit"
   },
   "dependencies": {
-    "@midnight-ntwrk/compact-runtime": "0.16.0",
+    "@midnight-ntwrk/compact-runtime": "^0.16.0",
+    "@midnight-ntwrk/dapp-connector-api": "^4.0.1",
     "@midnight-ntwrk/midnight-js-contracts": "^4.1.1",
+    "@midnight-ntwrk/midnight-js-dapp-connector-proof-provider": "^4.1.1",
+    "@midnight-ntwrk/midnight-js-fetch-zk-config-provider": "^4.1.1",
     "@midnight-ntwrk/midnight-js-http-client-proof-provider": "^4.1.1",
     "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "^4.1.1",
     "@midnight-ntwrk/midnight-js-level-private-state-provider": "^4.1.1",
@@ -21,16 +30,26 @@
     "@midnight-ntwrk/midnight-js-types": "^4.1.1",
     "@midnight-ntwrk/midnight-js-utils": "^4.1.1",
     "@midnight-ntwrk/wallet-sdk": "^1.2.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "rxjs": "^7.8.2",
+    "semver": "^7.8.5",
     "tsx": "^4.23.1",
     "ws": "^8.21.1"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
     "@types/node": "^22.0.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@types/semver": "^7.7.1",
+    "@vitejs/plugin-react": "^4.3.4",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.4",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vite": "^6.3.5",
+    "vite-plugin-top-level-await": "^1.6.0",
+    "vite-plugin-wasm": "^3.6.0"
   },
   "engines": {
     "node": ">=22.0.0"
