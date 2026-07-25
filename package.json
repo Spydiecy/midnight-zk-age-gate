@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build --mode preprod && cp -r managed/age-gate/keys dist/keys && cp -r managed/age-gate/zkir dist/zkir",
-    "build:preview": "vite build --mode preview && cp -r managed/age-gate/keys dist/keys && cp -r managed/age-gate/zkir dist/zkir",
-    "preview": "vite preview",
+    "build:preview": "vite build --mode preview && cp -r managed/age-gate/keys dist/keys && cp -r managed/age-gate/zkir dist/zkir",    "preview": "vite preview",
     "compile": "compact compile contracts/age-gate.compact managed/age-gate",
     "compile:counter": "compact compile contracts/counter.compact managed/counter",
     "deploy:preprod": "npx tsx src/deploy-age-gate.ts --network preprod",
@@ -48,6 +47,7 @@
     "ts-jest": "^29.1.4",
     "typescript": "^6.0.3",
     "vite": "^6.3.5",
+    "vite-plugin-node-polyfills": "^0.28.0",
     "vite-plugin-top-level-await": "^1.6.0",
     "vite-plugin-wasm": "^3.6.0"
   },

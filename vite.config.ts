@@ -2,9 +2,11 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import wasm from 'vite-plugin-wasm';
 import topLevelAwait from 'vite-plugin-top-level-await';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 export default defineConfig(({ mode }) => ({
   plugins: [
+    nodePolyfills({ include: ['buffer', 'process', 'util', 'stream'] }),
     react(),
     wasm(),
     topLevelAwait({
@@ -32,10 +34,5 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.wasm'],
     mainFields: ['browser', 'module', 'main'],
-  },
-  define: {
-    // Inject network env vars
-    'import.meta.env.VITE_NETWORK_ID': JSON.stringify(mode === 'preprod' ? 'preprod' : mode === 'preview' ? 'preview' : 'preprod'),
-    'import.meta.env.VITE_CONTRACT_ADDRESS': JSON.stringify(process.env.VITE_CONTRACT_ADDRESS ?? ''),
   },
 }));

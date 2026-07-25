@@ -1,22 +1,15 @@
 /**
- * contract.ts
- * Wraps deployContract / joinContract and circuit calls for the age-gate contract.
+ * contract.ts — browser-side contract interaction for age-gate.
+ * Static import so Vite bundles and resolves all bare specifiers.
  */
 
-import { deployContract, findDeployedContract } from '@midnight-ntwrk/midnight-js-contracts';
+import { findDeployedContract } from '@midnight-ntwrk/midnight-js-contracts';
 import { CompiledContract } from '@midnight-ntwrk/midnight-js-protocol/compact-js';
-import type { ContractAddress } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
+import { type Observable, map } from 'rxjs';
 import type { AgeGateProviders } from './providers';
 
-// Dynamically import the compiled contract — loaded at runtime from managed/
-let _Contract: any = null;
-async function getContractClass() {
-  if (_Contract) return _Contract;
-  // The compiled JS is served as a static asset from /managed/age-gate/contract/
-  const mod = await import(/* @vite-ignore */ '/managed/age-gate/contract/index.js');
-  _Contract = mod.Contract;
-  return _Contract;
-}
+// Static import — Vite processes this file and rewrites bare imports to URLs
+import * as AgeGate from '../contract/age-gate.js';
 
 export interface AgeGateState {
   access_granted: boolean;
@@ -24,73 +17,54 @@ export interface AgeGateState {
 }
 
 export interface DeployedAgeGate {
-  address: ContractAddress;
-  getState: () => Promise<AgeGateState>;
+  readonly address: string;
+  readonly state$: Observable<AgeGateState>;
   verifyAge: (birthYear: number) => Promise<void>;
   revokeAccess: () => Promise<void>;
 }
 
 const PRIVATE_STATE_KEY = 'age-gate-private';
 
-export async function deployAgeGate(providers: AgeGateProviders): Promise<DeployedAgeGate> {
-  const ContractClass = await getContractClass();
-
-  const compiled = CompiledContract.make('age-gate', ContractClass).pipe(
+export async function joinAgeGate(
+  providers: AgeGateProviders,
+  address: string,
+): Promise<DeployedAgeGate> {
+  const compiled = CompiledContract.make('age-gate', AgeGate.Contract as any).pipe(
     CompiledContract.withVacantWitnesses,
-    CompiledContract.withCompiledFileAssets('/managed/age-gate'),
+    CompiledContract.withCompiledFileAssets(`${window.location.origin}/managed/age-gate`),
   );
 
-  const deployed = await deployContract(providers, {
-    compiledContract: compiled,
-    args: [],
+  const found = await findDeployedContract(providers as any, {
+    contractAddress: address as any,
+    compiledContract: compiled as any,
     privateStateId: PRIVATE_STATE_KEY,
     initialPrivateState: {},
   });
 
-  return wrapDeployed(deployed, providers);
-}
+  const state$: Observable<AgeGateState> = providers.publicDataProvider
+    .contractStateObservable(address as any, { type: 'latest' })
+    .pipe(
+      map((contractState: any) => {
+        try {
+          const l = AgeGate.ledger(contractState.data ?? contractState);
+          return {
+            access_granted: Boolean(l.access_granted),
+            verifications: BigInt(l.verifications ?? 0),
+          };
+        } catch {
+          return { access_granted: false, verifications: 0n };
+        }
+      }),
+    );
 
-export async function joinAgeGate(providers: AgeGateProviders, address: ContractAddress): Promise<DeployedAgeGate> {
-  const ContractClass = await getContractClass();
-
-  const compiled = CompiledContract.make('age-gate', ContractClass).pipe(
-    CompiledContract.withVacantWitnesses,
-    CompiledContract.withCompiledFileAssets('/managed/age-gate'),
-  );
-
-  const joined = await findDeployedContract(providers, {
-    contractAddress: address,
-    compiledContract: compiled,
-    privateStateId: PRIVATE_STATE_KEY,
-    initialPrivateState: {},
-  });
-
-  return wrapDeployed(joined, providers);
-}
-
-function wrapDeployed(deployed: any, providers: AgeGateProviders): DeployedAgeGate {
   return {
-    address: deployed.deployTxData?.public?.contractAddress ?? deployed.contractAddress,
-
-    async getState(): Promise<AgeGateState> {
-      // Read from the public data provider / indexer
-      const { ledger } = await import(/* @vite-ignore */ '/managed/age-gate/contract/index.js');
-      const state = await providers.publicDataProvider.queryContractState(
-        deployed.deployTxData?.public?.contractAddress ?? deployed.contractAddress,
-      );
-      const l = ledger(state);
-      return {
-        access_granted: l.access_granted as boolean,
-        verifications: l.verifications as bigint,
-      };
-    },
-
+    address,
+    state$,
     async verifyAge(birthYear: number): Promise<void> {
-      await deployed.callTx.verify_age(BigInt(birthYear));
+      await (found as any).callTx.verify_age(BigInt(birthYear));
     },
-
     async revokeAccess(): Promise<void> {
-      await deployed.callTx.revoke_access();
+      await (found as any).callTx.revoke_access();
     },
   };
 }
