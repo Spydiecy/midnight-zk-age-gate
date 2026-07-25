@@ -1,77 +1,86 @@
-# Midnight Privacy Counter
+# ZK Age Gate
 
-> A zero-knowledge counter contract on Midnight Network that publicly tracks a count while keeping the increment amount completely private.
+> Prove you're 18+ without ever revealing your age. A zero-knowledge DApp on Midnight Network.
+
+## Live Demo
+
+[PASTE LIVE URL AFTER DEPLOYING FRONTEND]
 
 ## Contract Address
 
 | Network  | Address                                                            |
 |----------|--------------------------------------------------------------------|
-| Preview  | `4999fb143b4a66fbde948f625f2700470cd006169a3bf93e6dc4a693df09035b` |
 | Preprod  | [PASTE ADDRESS AFTER DEPLOY]                                       |
+| Preview  | `4999fb143b4a66fbde948f625f2700470cd006169a3bf93e6dc4a693df09035b` |
 
 ## What This Does
 
-This contract maintains a publicly visible counter on the Midnight blockchain. Anyone can read the current count. But when a user increments the counter, the **amount** they increment by is a private input — it's proven correct using a zero-knowledge proof but is never recorded on-chain or revealed to observers.
-
-The contract exposes two circuits:
-- **`increment(increment_by)`** — adds a private amount to the counter
-- **`reset()`** — sets the counter back to zero
+ZK Age Gate lets a user prove they are at least 18 years old **without disclosing their actual birth year**. The user enters their birth year locally in the browser. Lace wallet generates a zero-knowledge proof that `2026 − birth_year ≥ 18`. That proof is verified on-chain. The blockchain records only `access_granted: true` — the birth year never appears anywhere outside the user's machine.
 
 ## Privacy Model
 
 - **PUBLIC (on-chain, visible to anyone):**
-  - `count` — the current counter value (stored as a `Counter` ledger type)
+  - `access_granted` — Boolean: whether the last verification passed
+  - `verifications` — Counter: total number of successful verifications
 
-- **PRIVATE (private witness/circuit input, never on-chain):**
-  - `increment_by` — the exact amount each caller adds to the counter; consumed inside the ZK proof and never stored or transmitted
+- **PRIVATE (circuit input, never on-chain or transmitted):**
+  - `birth_year` — the user's actual birth year; consumed inside the ZK proof locally and never stored, logged, or sent anywhere
 
 - **What the user PROVES without revealing:**
-  - That `increment_by > 0` (the increment is valid and positive)
-  - That the counter advanced correctly by that amount (`new_count = old_count + increment_by`)
-  - The actual value of `increment_by` is mathematically provable but never disclosed
+  - That `2026 − birth_year ≥ 18` (they are old enough)
+  - That `1900 ≤ birth_year ≤ 2026` (it's a valid year)
+  - The actual birth year is mathematically proven but never disclosed
+
+## Privacy Claim
+
+An on-chain observer inspecting the transaction or ledger state sees:
+- `access_granted = true`
+- `verifications = N`
+
+They **cannot** determine the user's birth year, age, or any other personal information. The ZK proof guarantees correctness without revealing the witness.
 
 ## Tech Stack
 
-- [Midnight Network](https://midnight.network/) — privacy-first blockchain
-- [Compact](https://docs.midnight.network/compact/reference/compact-reference) — ZK smart contract language
-- Node.js v22+
-- Docker (for proof server)
-- TypeScript / Jest (tests)
+- [Midnight Network](https://midnight.network) — privacy-preserving blockchain
+- [Compact](https://docs.midnight.network/compact/reference) — ZK smart contract language
+- [Midnight.js SDK](https://docs.midnight.network/sdks/official/midnight-js) — contract interaction
+- [DApp Connector API](https://docs.midnight.network/api-reference/dapp-connector) — Lace wallet integration
+- React 19 + Vite 6
+- Lace Wallet (browser extension)
+- Node.js v22+, Docker
 
 ## Prerequisites
 
-- Node.js v22 or higher
-- Docker Desktop (running)
-- `compact` CLI installed: `curl -fsSL https://github.com/midnightntwrk/compact/releases/download/compact-v0.5.1/compact-installer.sh | bash`
-- Proof server image: `docker pull midnightntwrk/proof-server:8.1.0`
+- [Lace wallet](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk) installed and configured for **Preprod**
+- Lace proof server set to `http://localhost:6300` in Lace settings
+- Docker Desktop running (for local proof server)
+- Node.js v22+
 
-## Setup
+## Run Locally
 
 ```bash
-# Clone the repo
+# Clone
 git clone <your-repo-url>
 cd my-project
 
-# Install dependencies
-npm install
+# Install
+npm install --legacy-peer-deps
 
-# Start the proof server (required for deploy and ZK operations)
+# Start proof server (required)
 docker run --rm -p 6300:6300 midnightntwrk/proof-server:8.1.0
 
-# Compile the Compact contract
-npm run compile
+# Add contract address to env
+echo "VITE_CONTRACT_ADDRESS=<preprod-address>" > .env.local
+echo "VITE_NETWORK_ID=preprod" >> .env.local
+
+# Compile the contract (already done — managed/ is in repo)
+# npm run compile
+
+# Start dev server
+npm run dev
 ```
 
-## Deploy
-
-```bash
-NODE_OPTIONS="--max-old-space-size=12288" npm run deploy -- --network preview
-```
-
-When the deploy pauses for wallet funding, visit the faucet at:
-**https://faucet.preview.midnight.network**
-
-Paste your wallet address and request tNIGHT tokens, then the deploy will continue automatically.
+Open http://localhost:5173, connect Lace, enter your birth year.
 
 ## Run Tests
 
@@ -79,41 +88,45 @@ Paste your wallet address and request tNIGHT tokens, then the deploy will contin
 npm run test:run
 ```
 
-All 10 tests should pass, covering:
-- Circuit logic (increment and reset)
-- State transitions (accumulation, reset, post-reset increment)
-- Privacy model (private inputs never in ledger state)
+10 tests covering circuit logic, state transitions, and privacy model.
 
-## Project Structure
+## Compile Contract
 
+```bash
+npm run compile
 ```
-my-project/
-├── contracts/
-│   └── counter.compact          # Compact contract (privacy-preserving counter)
-├── managed/                     # Auto-generated by compact compile
-│   └── counter/
-│       ├── contract/            # TypeScript bindings
-│       ├── keys/                # ZK proving & verifier keys
-│       └── zkir/                # ZK intermediate representation
-├── src/
-│   ├── deploy.ts                # Deploy script
-│   ├── network.ts               # Network configuration
-│   └── wallet.ts                # Wallet utilities
-├── tests/
-│   └── counter.test.ts          # 10 tests covering circuits, state, privacy
-├── .github/
-│   └── workflows/               # CI/CD (Level 3)
-├── README.md
-└── package.json
+
+Outputs to `managed/age-gate/` — circuits, ZK keys, TypeScript bindings.
+
+## Deploy Contract
+
+```bash
+# Deploy to Preprod
+NODE_OPTIONS="--max-old-space-size=12288" npm run deploy:preprod
 ```
+
+When prompted, fund the wallet at: https://midnight-tmnight-preprod.nethermind.dev
+
+## Build & Deploy Frontend
+
+```bash
+# Build (copies ZK keys to dist/)
+npm run build
+
+# Deploy to Vercel
+npx vercel --prod
+```
+
+## Demo Video
+
+[PLACEHOLDER — add link after recording]
 
 ## Initial Idea
 
-This project demonstrates Midnight's core privacy primitive: the ability to prove a computation without revealing all its inputs. A counter is the simplest possible example of stateful computation, making it ideal for illustrating the contrast between public ledger state (`count` — visible to all) and private circuit inputs (`increment_by` — known only to the caller). The zero-knowledge proof guarantees the counter advanced honestly, even though no one else can tell by how much.
+Privacy-preserving age verification is one of the most practical real-world use cases for zero-knowledge proofs. Every age-gated service today forces users to submit full documents or exact dates — far more information than necessary. ZK Age Gate demonstrates that you only need to prove a threshold: "I am old enough." Nothing more. The birth year is used once, locally, to generate a proof, then discarded. The chain only ever learns the outcome.
 
 ## Screenshots
 
-![Compile output](./screenshots/compile-output.png)
-![Deployed contract address](./screenshots/deployed-address.png)
-
-> Screenshots to be added after deployment confirmation.
+[Add compile output screenshot]
+[Add deployed contract address screenshot]
+[Add frontend UI screenshot with wallet connected]
