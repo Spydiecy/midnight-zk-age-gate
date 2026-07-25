@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "file": "index.js",
+  "sourceRoot": "../../../",
+  "sources": ["contracts/age-gate.compact"],
+  "names": [],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EAgBA;;;;;;;;;;MAgBA,AAAA,UAMC;;;;;cANyB,YAAoB;;;;;;;;;;;;;;;;;;yCAApB,YAAoB;;;;;;;;;4CAApB,YAAoB;;;OAM7C;MAID,AAAA,aAEC;;;;;;;;;;;;;;;;;;;;;;OAAA;;;;;;;;;;GACA;EA7BD;;;;;;;;;;;;;;;;;;;;;;;;;;;;IAMA;;;;;;;;;yEAAsC;IACtC;;;;;;;;;yEAAqC;;;;;;;GAsBpC;EAbD,AAAA,aAMC,4BANyB,YAAoB;4BACrC,YAAU;;4BACV,YAAU;;4BACV,YAAU;;IACjB;;;;;;;;;yEAAc;UACd,KAAa;IAAb;;;;;;;;;;6FAAA,KAAa;;;;wEAAA;;GACd;EAID,AAAA,gBAEC;IADC;;;;;;;;;yEAAc;;GACf;;;;;;;;;;;;;;;;IAtBD;qCAAA;;;;;;;;;;;0GAAsC;KAAA;IACtC;qCAAA;;;;;;;;;;;0GAAqC;KAAA;;;;;;;;;;"
+}

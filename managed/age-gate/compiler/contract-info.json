@@ -1,0 +1,59 @@
+{
+  "compiler-version": "0.31.1",
+  "language-version": "0.23.0",
+  "runtime-version": "0.16.0",
+  "circuits": [
+    {
+      "name": "verify_age",
+      "pure": false,
+      "proof": true,
+      "arguments": [
+        {
+          "name": "birth_year",
+          "type": {
+            "type-name": "Uint",
+            "maxval": 65535
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Tuple",
+        "types": [
+        ]
+      }
+    },
+    {
+      "name": "revoke_access",
+      "pure": false,
+      "proof": true,
+      "arguments": [
+      ],
+      "result-type": {
+        "type-name": "Tuple",
+        "types": [
+        ]
+      }
+    }
+  ],
+  "witnesses": [
+  ],
+  "contracts": [
+  ],
+  "ledger": [
+    {
+      "name": "access_granted",
+      "index": 0,
+      "exported": true,
+      "storage": "Cell",
+      "type": {
+        "type-name": "Boolean"
+      }
+    },
+    {
+      "name": "verifications",
+      "index": 1,
+      "exported": true,
+      "storage": "Counter"
+    }
+  ]
+}

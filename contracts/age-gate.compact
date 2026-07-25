@@ -1,0 +1,45 @@
+/**
+ * age-gate.compact — ZK Age Gate
+ *
+ * PUBLIC (on-chain, visible to anyone):
+ *   - access_granted: Boolean — whether the last verification passed
+ *   - verifications: Counter — total number of successful age verifications
+ *
+ * PRIVATE (circuit input, never on-chain or transmitted):
+ *   - birth_year: the caller's actual birth year (e.g. 1995)
+ *     This value is consumed inside the ZK proof and NEVER stored anywhere.
+ *
+ * WHAT THE USER PROVES WITHOUT REVEALING:
+ *   - That (CURRENT_YEAR - birth_year) >= MIN_AGE
+ *   - i.e. they are old enough, without disclosing their actual birth year
+ *   - An on-chain observer sees only "access: granted" — never the birth year
+ */
+pragma language_version >= 0.23;
+
+import CompactStandardLibrary;
+
+// ── Ledger state ──────────────────────────────────────────────────────────────
+// PUBLIC: anyone can see whether the last check passed and the total count.
+export ledger access_granted: Boolean;
+export ledger verifications: Counter;
+
+// ── Circuit: verify_age ───────────────────────────────────────────────────────
+// birth_year is a PRIVATE circuit parameter — consumed inside the ZK proof,
+// never stored or transmitted on-chain.
+//
+// CURRENT_YEAR = 2026, MIN_AGE = 18
+// Proof guarantees: 2026 - birth_year >= 18  →  birth_year <= 2008
+// disclose() is used deliberately on the Boolean result only.
+export circuit verify_age(birth_year: Uint<16>): [] {
+  assert(birth_year >= 1900, "birth year must be 1900 or later");
+  assert(birth_year <= 2026, "birth year cannot be in the future");
+  assert(birth_year <= 2008, "you must be at least 18 years old");
+  access_granted = disclose(true);
+  verifications += disclose(1);
+}
+
+// ── Circuit: revoke_access ────────────────────────────────────────────────────
+// Resets access status. No private input — false is a public literal.
+export circuit revoke_access(): [] {
+  access_granted = disclose(false);
+}
