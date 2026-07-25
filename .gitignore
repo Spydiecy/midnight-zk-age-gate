@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Midnight wallet & private state — NEVER commit these (contain secret keys)
+.midnight-state.json
+.midnight-wallet-state/
+midnight-level-db/
+
+# Build output
+dist/
+
+# Env files
+.env
+.env.local
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test coverage
+coverage/
