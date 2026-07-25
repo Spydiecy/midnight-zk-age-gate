@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Compile & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Install Compact compiler
+        run: |
+          curl -fsSL https://github.com/midnightntwrk/compact/releases/download/compact-v0.5.1/compact-installer.sh -o /tmp/compact-installer.sh
+          bash /tmp/compact-installer.sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Compile counter contract
+        run: compact compile contracts/counter.compact managed/counter
+
+      - name: Compile age-gate contract
+        run: compact compile contracts/age-gate.compact managed/age-gate
+
+      - name: Run tests
+        run: npm run test:run

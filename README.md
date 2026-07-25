@@ -2,6 +2,8 @@
 
 > Prove you're 18+ without revealing your age. Built on Midnight Network.
 
+![CI](https://github.com/Spydiecy/midnight-zk-age-gate/actions/workflows/ci.yml/badge.svg)
+
 ## Live Demo
 
 **https://midnight-age-gate.vercel.app**
@@ -26,9 +28,13 @@ Enter your birth year. A zero-knowledge proof is generated locally in your brows
 - **PRIVATE:** `birth_year` — circuit input, never stored or transmitted
 - **Proved without revealing:** that `2026 − birth_year ≥ 18`
 
-## Privacy Claim
+An on-chain observer sees `access_granted = true`. They cannot determine your birth year, age, or any personal data.
 
-An on-chain observer sees `access_granted = true`. They cannot determine your birth year, age, or any personal data. The ZK proof guarantees correctness without revealing the witness.
+## Product Proposal
+
+**Idea:** Age / Eligibility Gate — prove a threshold without revealing the underlying value.
+
+Real-world applications: age-gated content platforms, DeFi protocols requiring KYC thresholds, DAO membership gates, event ticketing. Traditional verification requires exposing exact dates or documents. ZK Age Gate proves only what's necessary — eligibility — nothing more.
 
 ## Tech Stack
 
@@ -61,3 +67,9 @@ npm run dev
 ```bash
 npm run test:run
 ```
+
+10 tests passing — circuit logic, state transitions, privacy model.
+
+## CI/CD
+
+GitHub Actions runs on every push: installs dependencies, compiles both Compact contracts, and runs the full test suite. See [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
