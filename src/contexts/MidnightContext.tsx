@@ -70,7 +70,9 @@ export function MidnightProvider({ children }: { children: ReactNode }) {
             error: (e) => console.error('State stream error:', e),
           });
         } catch (e: any) {
-          setContractError(e?.message ?? String(e));
+          const msg = e?.message ?? String(e);
+          console.error('joinAgeGate failed:', msg, e);
+          setContractError(msg.length > 200 ? msg.slice(0, 200) + '…' : msg);
         }
       }
       setWalletStatus('connected');

@@ -155,7 +155,7 @@ export function AgeGate() {
               <span className="result-icon">⚠</span>
               <div className="result-body">
                 <strong>Contract Error</strong>
-                <p>{contractError}</p>
+                <p style={{ wordBreak: 'break-all', fontSize: 11 }}>{contractError}</p>
               </div>
             </div>
           )}
