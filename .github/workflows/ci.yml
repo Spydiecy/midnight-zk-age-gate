@@ -30,14 +30,25 @@ jobs:
           bash /tmp/compact-installer.sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
+      - name: Download Compact toolchain
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          compact update
+
       - name: Verify Compact version
-        run: compact --version
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          compact --version
 
       - name: Compile counter contract
-        run: compact compile contracts/counter.compact managed/counter
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          compact compile contracts/counter.compact managed/counter
 
       - name: Compile age-gate contract
-        run: compact compile contracts/age-gate.compact managed/age-gate
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          compact compile contracts/age-gate.compact managed/age-gate
 
       - name: Run test suite
         run: node --experimental-vm-modules node_modules/.bin/jest --testPathPattern=tests/ --forceExit
