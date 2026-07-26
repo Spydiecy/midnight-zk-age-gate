@@ -85,7 +85,7 @@ See [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 ## Demo Video
 
-[PASTE YOUTUBE LINK AFTER RECORDING]
+https://www.tella.tv/video/zero-knowledge-age-verification-on-midnight-chain-91pl
 
 ## Product Proposal
 
